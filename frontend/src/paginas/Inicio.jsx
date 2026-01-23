@@ -1,51 +1,85 @@
-import { Heart, MessageCircle, Bookmark } from "lucide-react";
+import React, { useState } from 'react';
+import { useAutenticacion } from '../contexto/ContextoAutenticacion';
+import { usePublicaciones } from '../hooks/usePublicaciones';
+import BarraNavegacion from '../componentes/comunes/BarraNavegacion';
+import TarjetaPublicacion from '../componentes/publicaciones/TarjetaPublicacion';
+import Cargando from '../componentes/comunes/Cargando';
 
-export default function Inicio() {
+const Inicio = () => {
+  const { autenticado } = useAutenticacion();
+  const [tipoFeed, setTipoFeed] = useState(autenticado ? 'feed' : 'todas');
+  const { publicaciones, cargando, error, cargarMas, hayMas } = usePublicaciones(tipoFeed);
+
   return (
-    <main className="max-w-3xl mx-auto mt-8 space-y-6 px-4">
-      {[1, 2, 3].map((post) => (
-        <article
-          key={post}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition"
-        >
-          {/* header */}
-          <div className="flex items-center gap-3 mb-4">
-            <img
-              src="https://via.placeholder.com/40"
-              className="w-10 h-10 rounded-full"
-              alt=""
-            />
-            <div>
-              <p className="font-semibold text-gray-900">usuario_demo</p>
-              <p className="text-sm text-gray-500">hace 2h</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <BarraNavegacion />
 
-          {/* contenido */}
-          <h2 className="text-xl font-bold mb-2 text-gray-900">
-            Cómo mejorar tu productividad como dev
-          </h2>
-
-          <p className="text-gray-700 mb-4">
-            Aquí va un extracto atractivo de la publicación para enganchar al lector…
-          </p>
-
-          {/* acciones */}
-          <div className="flex justify-between items-center text-gray-500">
-            <div className="flex gap-6">
-              <button className="flex items-center gap-1 hover:text-red-500">
-                <Heart className="w-5 h-5" /> 12
-              </button>
-              <button className="flex items-center gap-1 hover:text-blue-500">
-                <MessageCircle className="w-5 h-5" /> 4
-              </button>
-            </div>
-            <button className="hover:text-yellow-500">
-              <Bookmark className="w-5 h-5" />
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* selector de feed */}
+        {autenticado && (
+          <div className="bg-white rounded-lg shadow-sm p-2 mb-6 flex gap-2">
+            <button
+              onClick={() => setTipoFeed('feed')}
+              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                tipoFeed === 'feed'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Para ti
+            </button>
+            <button
+              onClick={() => setTipoFeed('todas')}
+              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                tipoFeed === 'todas'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Explorar
             </button>
           </div>
-        </article>
-      ))}
-    </main>
+        )}
+
+        {/* publicaciones */}
+        {cargando && publicaciones.length === 0 ? (
+          <Cargando texto="Cargando publicaciones..." />
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        ) : publicaciones.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <p className="text-gray-600 text-lg">No hay publicaciones aún</p>
+            {autenticado && (
+              <p className="text-gray-500 mt-2">
+                ¡Sé el primero en crear una publicación!
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {publicaciones.map((publicacion) => (
+              <TarjetaPublicacion key={publicacion.id} publicacion={publicacion} />
+            ))}
+
+            {/* boton cargar mas */}
+            {hayMas && (
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={cargarMas}
+                  disabled={cargando}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {cargando ? 'Cargando...' : 'Cargar más'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
-}
+};
+
+export default Inicio;
