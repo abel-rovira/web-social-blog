@@ -1,0 +1,1 @@
+# solucionar errores que tengo al ejecutar
