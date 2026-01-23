@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Home, Search, PlusSquare, User, LogOut, Bookmark, Menu, X } from 'lucide-react';
-import { useAutenticacion } from '../contexto/ContextoAutenticacion';
+import { useAutenticacion } from '../../contexto/ContextoAutenticacion';
 
 const BarraNavegacion = () => {
   const { autenticado, usuario, logout } = useAutenticacion();

@@ -64,7 +64,6 @@ const TarjetaPublicacion = ({ publicacion, onActualizar }) => {
         console.log('Error al compartir:', err);
       }
     } else {
-      // copiar al portapapeles
       navigator.clipboard.writeText(window.location.origin + `/publicacion/${publicacion.id}`);
       alert('Enlace copiado al portapapeles');
     }
