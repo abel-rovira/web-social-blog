@@ -28,7 +28,7 @@ module.exports = (sequelize) => {
       type: DataTypes.JSON,
       allowNull: true,
       defaultValue: []
-    },
+    }, 
     vistas: {
       type: DataTypes.INTEGER,
       defaultValue: 0
