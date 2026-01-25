@@ -60,13 +60,13 @@ const PORT = process.env.PORT || 5000;
 db.sincronizarBaseDatos({ alter: true })
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
-      console.log(`📊 Base de datos: ${db.sequelize.config.database}`);
-      console.log(`🚀 API lista para recibir peticiones`);
+      console.log(`Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`Base de datos: ${db.sequelize.config.database}`);
+      console.log(`API lista para recibir peticiones`);
     });
   })
   .catch(error => {
-    console.error('❌ Error al iniciar servidor:', error);
+    console.error('Error al iniciar servidor:', error);
     process.exit(1);
   });
 
