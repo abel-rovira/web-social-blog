@@ -40,3 +40,5 @@ module.exports = (sequelize) => {
 
   return Publicacion;
 };
+
+// intentar la conexion
