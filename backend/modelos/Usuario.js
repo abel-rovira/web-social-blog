@@ -65,10 +65,10 @@ module.exports = (sequelize) => {
     }
   });
 
-  // Método para comparar contraseñas
-  Usuario.prototype.compararContrasena = async function(contrasenaIngresada) {
-    return await bcrypt.compare(contrasenaIngresada, this.contrasena);
-  };
+// Metodo para comparar contraseñas (misma lógica, sin async/await)
+Usuario.prototype.compararContrasena = function(contrasenaIngresada) {
+  return bcrypt.compare(contrasenaIngresada, this.contrasena);
+};
 
-  return Usuario;
+return Usuario;
 };
