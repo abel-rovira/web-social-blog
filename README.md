@@ -4,18 +4,6 @@
 
 **Una plataforma de blogging social donde escritores comparten historias, conectan con lectores y construyen su audiencia.**
 
-## Tabla de Contenidos
-
-- [Características](#-características)
-- [Stack Tecnológico](#-stack-tecnológico)
-- [Requisitos Previos](#-requisitos-previos)
-- [Instalación](#-instalación)
-- [Uso](#-uso)
-- [API Reference](#-api-reference)
-- [Despliegue](#-despliegue)
-- [Solución de Problemas](#-solución-de-problemas)
-- [Licencia](#-licencia)
-
 ---
 
 ## Características
