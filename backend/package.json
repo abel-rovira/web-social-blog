@@ -5,12 +5,8 @@
   "main": "servidor.js",
   "scripts": {
     "start": "node servidor.js",
-    "dev": "nodemon servidor.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon servidor.js"
   },
-  "keywords": ["blog", "red social", "nodejs", "express", "mysql"],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
