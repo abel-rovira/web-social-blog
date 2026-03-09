@@ -2,7 +2,46 @@
 
 <div align="center">
 
-**Una plataforma de blogging social donde escritores comparten historias, conectan con lectores y construyen su audiencia.**
+![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-ISC-green) ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen) ![MySQL](https://img.shields.io/badge/mysql-%3E%3D8.0-orange)
+
+**Plataforma de blogging social donde escritores comparten historias, conectan con lectores y construyen su audiencia.**
+
+[Demo](#) · [Reportar Bug](#) · [Solicitar Feature](#)
+
+</div>
+
+---
+
+## Tabla de Contenidos
+
+- [Capturas de Pantalla](#capturas-de-pantalla)
+- [Características](#características)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación](#instalación)
+- [Uso](#uso)
+- [API Reference](#api-reference)
+- [Despliegue](#despliegue)
+- [Solución de Problemas](#solución-de-problemas)
+- [Licencia](#licencia)
+
+---
+
+## Capturas de Pantalla
+
+### Página Principal
+
+![Página principal](screenshots/home.png)
+
+### Login y Registro
+
+| Login | Registro |
+|-------|----------|
+| ![Login](screenshots/login.png) | ![Registro](screenshots/registro.png) |
+
+### Perfil de Usuario
+
+![Perfil de usuario](screenshots/perfil.png)
 
 ---
 
@@ -130,9 +169,9 @@ npm start
 <details>
 <summary><strong>Interactuar con Publicaciones</strong></summary>
 
--  **Me gusta** — haz clic en el ícono de corazón en cualquier publicación.
--  **Guardar** — guarda publicaciones para leerlas más tarde desde la sección *Guardados*.
--  **Comentar** — abre una publicación y escribe tu comentario al pie.
+- **Me gusta** — haz clic en el ícono de corazón en cualquier publicación.
+- **Guardar** — guarda publicaciones para leerlas más tarde desde la sección *Guardados*.
+- **Comentar** — abre una publicación y escribe tu comentario al pie.
 
 </details>
 
@@ -141,7 +180,7 @@ npm start
 
 - Edita tu perfil (avatar, biografía, datos personales) desde tu página de usuario.
 - Visita el perfil de otro usuario para seguirlo o dejar de seguirlo.
-- Tu feed en la página principal mostrará las publicaciones de las personas que sigues.
+- Tu feed mostrará las publicaciones de las personas que sigues.
 
 </details>
 
@@ -214,15 +253,14 @@ npm start
 ### Backend
 
 ```bash
-# Variables de entorno para producción
 NODE_ENV=production
 JWT_SECRET=clave_larga_y_aleatoria
-# Configura CORS para tu dominio frontend
 
-# Mantener el proceso activo con PM2
 npm install -g pm2
 pm2 start server.js --name pixara-api
 ```
+
+Configura CORS para aceptar únicamente el dominio del frontend en producción.
 
 ### Frontend
 
@@ -231,40 +269,38 @@ npm run build
 # Sirve la carpeta /build con Nginx, Apache o Vercel
 ```
 
->  Asegúrate de que la carpeta `backend/uploads/` exista y tenga permisos de escritura en producción.
+> Asegúrate de que la carpeta `backend/uploads/` exista y tenga permisos de escritura en producción.
 
 ---
 
-## 🔧 Solución de Problemas
+## Solución de Problemas
 
 | Problema | Solución |
 |----------|----------|
-| Error de conexión a la BD | Verifica que MySQL esté activo y que las credenciales en `.env` sean correctas |
+| Error de conexión a la base de datos | Verifica que MySQL esté activo y que las credenciales en `.env` sean correctas |
 | Módulos no encontrados | Ejecuta `npm install`. Si persiste, elimina `node_modules` y `package-lock.json` y reinstala |
-| No inicia sesión | Comprueba que el backend esté corriendo y revisa los logs de la consola |
+| Error al iniciar sesión | Comprueba que el backend esté en ejecución y revisa los logs de la consola |
 | Las imágenes no cargan | Verifica que exista la carpeta `backend/uploads/` con permisos de escritura |
 
 ---
 
 ## Licencia
 
-Distribuido bajo la Licencia **ISC**. Consulta el archivo `LICENSE` para más información.
+Distribuido bajo la Licencia ISC. Consulta el archivo `LICENSE` para más información.
 
 ---
 
 <div align="center">
- <a href="#">Reportar un problema</a>
+Para soporte o consultas, abre un issue en el repositorio del proyecto.
 </div>
 
 ---
 
-Los cambios principales que hice:
+Guarda tus capturas en la carpeta `screenshots/` con estos nombres:
 
-- **Badges visuales** en el encabezado para versión, licencia y requisitos.
-- **Tabla de características** en lugar de una lista plana — más fácil de escanear.
-- **Secciones colapsables** (`<details>`) para el uso, manteniendo el README limpio.
-- **Tablas de API** organizadas por recurso en lugar de listas de texto.
-- **Tabla de troubleshooting** para diagnóstico rápido.
-- **Paso de clonado** añadido al inicio (faltaba en el original).
-- **Tono más conciso** eliminando redundancias y frases largas.
-- **Anchors y navegación** con tabla de contenidos al inicio.
+| Archivo | Sección |
+|--------|---------|
+| `screenshots/home.png` | Página principal |
+| `screenshots/login.png` | Pantalla de login |
+| `screenshots/registro.png` | Pantalla de registro |
+| `screenshots/perfil.png` | Perfil de usuario |
