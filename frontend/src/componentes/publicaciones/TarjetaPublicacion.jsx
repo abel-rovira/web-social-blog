@@ -3,13 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Bookmark, Share2, MoreHorizontal } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { publicacionesAPI } from '../../servicios/api';
-import { useAutenticacion } from '../../contexto/ContextoAutenticacion';
+import { useAutenticacion } from '../../hooks/useAutenticacion';
 import Avatar from '../comunes/Avatar';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const TarjetaPublicacion = ({ publicacion, onActualizar }) => {
   const navigate = useNavigate();
   const { autenticado } = useAutenticacion();
   
+  // Validar que la publicación existe
+  if (!publicacion) {
+    return null;
+  }
+
+  // Valores por defecto seguros
   const [leGusta, setLeGusta] = useState(publicacion.leGusta || false);
   const [guardada, setGuardada] = useState(publicacion.guardada || false);
   const [totalMeGustas, setTotalMeGustas] = useState(publicacion.totalMeGustas || 0);
@@ -52,154 +60,174 @@ const TarjetaPublicacion = ({ publicacion, onActualizar }) => {
     }
   };
 
-  const manejarCompartir = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: publicacion.titulo,
-          text: publicacion.contenido.substring(0, 100) + '...',
-          url: window.location.origin + `/publicacion/${publicacion.id}`
-        });
-      } catch (err) {
-        console.log('Error al compartir:', err);
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.origin + `/publicacion/${publicacion.id}`);
-      alert('Enlace copiado al portapapeles');
-    }
+  const manejarCompartir = () => {
+    const url = `${window.location.origin}/publicacion/${publicacion.id}`;
+    navigator.clipboard.writeText(url);
+    // Aquí podrías mostrar un toast de éxito
+  };
+
+  // Obtener fecha formateada de forma segura
+  const fechaFormateada = publicacion.fechaCreacion 
+    ? formatDistanceToNow(new Date(publicacion.fechaCreacion), { addSuffix: true, locale: es })
+    : 'fecha desconocida';
+
+  // Obtener extracto del contenido de forma segura
+  const obtenerExtracto = () => {
+    if (!publicacion.contenido) return 'Sin contenido';
+    
+    // Eliminar caracteres de markdown para el extracto
+    const textoSinMarkdown = publicacion.contenido
+      .replace(/[#*`~]/g, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .trim();
+    
+    return textoSinMarkdown.length > 150 
+      ? textoSinMarkdown.substring(0, 150) + '...'
+      : textoSinMarkdown;
   };
 
   return (
-    <article className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      {/* cabecera del autor */}
-      <div className="flex items-center justify-between p-4">
-        <Link 
-          to={`/perfil/${publicacion.autor?.nombreUsuario}`}
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-        >
-          <Avatar 
-            src={publicacion.autor?.avatar} 
-            alt={publicacion.autor?.nombreUsuario}
-            size="md"
-          />
-          <div>
-            <p className="font-semibold text-gray-900">{publicacion.autor?.nombreUsuario}</p>
-            <p className="text-sm text-gray-500">
-              {new Date(publicacion.fechaCreacion).toLocaleDateString('es-ES', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-              })}
-            </p>
-          </div>
-        </Link>
+    <article className="card hover:shadow-lg transition-all duration-300">
+      {/* Cabecera del autor */}
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <Link 
+            to={`/perfil/${publicacion.autor?.nombreUsuario || 'usuario'}`}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <Avatar 
+              src={publicacion.autor?.avatar} 
+              alt={publicacion.autor?.nombreUsuario || 'Usuario'}
+              size="md"
+            />
+            <div>
+              <p className="font-semibold text-gray-900">
+                {publicacion.autor?.nombreUsuario || 'Usuario'}
+              </p>
+              <p className="text-sm text-gray-500">
+                {fechaFormateada}
+              </p>
+            </div>
+          </Link>
 
-        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <MoreHorizontal className="w-5 h-5 text-gray-600" />
-        </button>
+          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <MoreHorizontal className="w-5 h-5 text-gray-600" />
+          </button>
+        </div>
       </div>
 
-      {/* imagen principal */}
+      {/* Imagen principal */}
       {publicacion.imagenes && publicacion.imagenes.length > 0 && (
         <Link to={`/publicacion/${publicacion.id}`}>
-          <div className="relative w-full h-96">
+          <div className="relative w-full h-48 sm:h-64 overflow-hidden">
             <img
               src={publicacion.imagenes[0]}
-              alt={publicacion.titulo}
-              className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
+              alt={publicacion.titulo || 'Publicación'}
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/400x200?text=Imagen+no+disponible';
+              }}
             />
           </div>
         </Link>
       )}
 
-      {/* contenido */}
+      {/* Contenido */}
       <div className="p-4">
         <Link to={`/publicacion/${publicacion.id}`}>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors cursor-pointer">
-            {publicacion.titulo}
-          </h2>
+          <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 hover:text-amber-600 transition-colors line-clamp-2">
+            {publicacion.titulo || 'Sin título'}
+          </h3>
         </Link>
 
-        {/* preview del contenido */}
-        <div className="prose prose-sm max-w-none mb-4 line-clamp-3">
-          <ReactMarkdown>
-            {publicacion.contenido.substring(0, 200) + (publicacion.contenido.length > 200 ? '...' : '')}
-          </ReactMarkdown>
-        </div>
+        {/* Extracto del contenido */}
+        <p className="text-gray-600 mb-4 line-clamp-3">
+          {obtenerExtracto()}
+        </p>
 
-        {/* etiquetas */}
+        {/* Etiquetas */}
         {publicacion.etiquetas && publicacion.etiquetas.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {publicacion.etiquetas.slice(0, 3).map((etiqueta) => (
+            {publicacion.etiquetas.slice(0, 3).map((etiqueta, index) => (
               <Link
-                key={etiqueta.id}
-                to={`/etiqueta/${etiqueta.nombre}`}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                key={index}
+                to={`/explorar?tag=${etiqueta.nombre}`}
+                className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full hover:bg-amber-100 hover:text-amber-600 transition-colors"
               >
                 #{etiqueta.nombre}
               </Link>
             ))}
             {publicacion.etiquetas.length > 3 && (
-              <span className="text-sm text-gray-500">
-                +{publicacion.etiquetas.length - 3} más
+              <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                +{publicacion.etiquetas.length - 3}
               </span>
             )}
           </div>
         )}
 
-        {/* acciones */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-6">
-            {/* me gusta */}
+        {/* Acciones */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-4">
+            {/* Me gusta */}
             <button
               onClick={manejarMeGusta}
-              className="flex items-center gap-2 group"
+              className="flex items-center gap-1.5 group"
             >
               <Heart
-                className={`w-6 h-6 transition-all ${
+                className={`w-5 h-5 transition-all ${
                   leGusta
                     ? 'fill-red-500 text-red-500'
-                    : 'text-gray-600 group-hover:text-red-500'
+                    : 'text-gray-500 group-hover:text-red-500'
                 }`}
               />
-              <span className="text-sm font-medium text-gray-700">{totalMeGustas}</span>
+              <span className={`text-sm font-medium ${
+                leGusta ? 'text-red-500' : 'text-gray-600'
+              }`}>
+                {totalMeGustas}
+              </span>
             </button>
 
-            {/* comentarios */}
+            {/* Comentarios */}
             <Link 
               to={`/publicacion/${publicacion.id}#comentarios`}
-              className="flex items-center gap-2 group"
+              className="flex items-center gap-1.5 group"
             >
-              <MessageCircle className="w-6 h-6 text-gray-600 group-hover:text-blue-500 transition-colors" />
-              <span className="text-sm font-medium text-gray-700">
+              <MessageCircle className="w-5 h-5 text-gray-500 group-hover:text-blue-500 transition-colors" />
+              <span className="text-sm font-medium text-gray-600">
                 {publicacion.totalComentarios || 0}
               </span>
             </Link>
 
-            {/* compartir */}
-            <button onClick={manejarCompartir} className="flex items-center gap-2 group">
-              <Share2 className="w-6 h-6 text-gray-600 group-hover:text-green-500 transition-colors" />
+            {/* Compartir */}
+            <button
+              onClick={manejarCompartir}
+              className="flex items-center gap-1.5 group"
+            >
+              <Share2 className="w-5 h-5 text-gray-500 group-hover:text-green-500 transition-colors" />
             </button>
           </div>
 
-          {/* guardar */}
-          <button onClick={manejarGuardar} className="group">
+          {/* Guardar */}
+          <button
+            onClick={manejarGuardar}
+            className="group"
+          >
             <Bookmark
-              className={`w-6 h-6 transition-all ${
+              className={`w-5 h-5 transition-all ${
                 guardada
-                  ? 'fill-yellow-500 text-yellow-500'
-                  : 'text-gray-600 group-hover:text-yellow-500'
+                  ? 'fill-amber-500 text-amber-500'
+                  : 'text-gray-500 group-hover:text-amber-500'
               }`}
             />
           </button>
         </div>
 
-        {/* boton leer mas */}
+        {/* Leer más */}
         <Link
           to={`/publicacion/${publicacion.id}`}
-          className="block mt-4 text-blue-600 hover:text-blue-700 font-medium text-sm"
+          className="block mt-3 text-sm text-amber-600 hover:text-amber-700 font-medium"
         >
-          Leer más &rarr;
+          Leer más →
         </Link>
       </div>
     </article>
