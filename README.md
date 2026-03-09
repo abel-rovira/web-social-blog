@@ -1,9 +1,6 @@
-
-
 <div align="center">
-  # PIXARA — Blog Social
-**Plataforma de blogging social donde escritores comparten historias, conectan con lectores y construyen su audiencia.**
-
+  <h1>PIXARA — Blog Social</h1>
+  <p><strong>Plataforma de blogging social donde escritores comparten historias, conectan con lectores y construyen su audiencia.</strong></p>
 </div>
 
 ---
