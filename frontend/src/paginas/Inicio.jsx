@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAutenticacion } from '../hooks/useAutenticacion';
 import { usePublicaciones } from '../hooks/usePublicaciones';
 import BarraNavegacion from '../componentes/comunes/BarraNavegacion';
-import HeroSection from '../componentes/publicaciones/HeroSection';
+import CarruselHero from '../componentes/publicaciones/CarruselHero';
 import TarjetaPublicacion from '../componentes/publicaciones/TarjetaPublicacion';
 import Cargando from '../componentes/comunes/Cargando';
 import { Sparkles, TrendingUp, Clock, ArrowRight } from 'lucide-react';
@@ -55,8 +55,8 @@ const Inicio = () => {
     <div className="min-h-screen bg-white">
       <BarraNavegacion />
 
-      {/* Hero Section - Estilo PIXARA */}
-      <HeroSection />
+      {/* Carrusel Hero - AHORA CON EL DISEÑO ESPECTACULAR */}
+      <CarruselHero />
 
       {/* Sección de Destacadas */}
       <section className="container-pixara py-16">
@@ -148,7 +148,7 @@ const Inicio = () => {
                 <button
                   onClick={cargarMas}
                   disabled={cargando}
-                  className="btn-pixara-outline flex items-center gap-2"
+                  className="border border-gray-300 hover:border-amber-600 text-gray-700 hover:text-amber-600 font-medium py-3 px-8 rounded-full transition-colors flex items-center gap-2"
                 >
                   {cargando ? (
                     <>
@@ -166,7 +166,7 @@ const Inicio = () => {
           <div className="text-center py-16">
             <p className="text-gray-500 text-lg">No hay publicaciones aún</p>
             {autenticado && (
-              <Link to="/crear" className="btn-pixara-primary inline-block mt-4">
+              <Link to="/crear" className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-8 rounded-full transition-colors inline-block mt-4">
                 Escribe la primera historia
               </Link>
             )}
@@ -184,15 +184,15 @@ const Inicio = () => {
             Únete a una comunidad de escritores honestos y pensadores profundos
           </p>
           {autenticado ? (
-            <Link to="/crear" className="btn-pixara-primary inline-block">
+            <Link to="/crear" className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-8 rounded-full transition-colors inline-block">
               Comenzar a escribir
             </Link>
           ) : (
             <div className="flex gap-4 justify-center">
-              <Link to="/registro" className="btn-pixara-primary">
+              <Link to="/registro" className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-8 rounded-full transition-colors">
                 Registrarse gratis
               </Link>
-              <Link to="/explorar" className="btn-pixara-outline">
+              <Link to="/explorar" className="border border-gray-300 hover:border-amber-600 text-gray-700 hover:text-amber-600 font-medium py-3 px-8 rounded-full transition-colors">
                 Explorar
               </Link>
             </div>

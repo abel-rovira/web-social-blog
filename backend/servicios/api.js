@@ -107,4 +107,31 @@ export const publicacionesAPI = {
     });
   },
   eliminar: (id) => api.delete(`/publicaciones/${id}`),
-  darMeG
+  darMeGusta: (id) => api.post(`/publicaciones/${id}/me-gusta`),
+  guardar: (id) => api.post(`/publicaciones/${id}/guardar`),
+  buscar: (termino, pagina = 1) => 
+    api.get(`/publicaciones/buscar?termino=${termino}&pagina=${pagina}`)
+};
+
+// Comentarios
+export const comentariosAPI = {
+  obtener: (publicacionId) => 
+    api.get(`/comentarios/publicacion/${publicacionId}`),
+  crear: (datos) => api.post('/comentarios', datos),
+  actualizar: (id, datos) => api.put(`/comentarios/${id}`, datos),
+  eliminar: (id) => api.delete(`/comentarios/${id}`)
+};
+
+// Seguidores
+export const seguidoresAPI = {
+  seguir: (usuarioId) => api.post(`/seguidores/seguir/${usuarioId}`),
+  dejarDeSeguir: (usuarioId) => 
+    api.delete(`/seguidores/dejar-seguir/${usuarioId}`),
+  obtenerSeguidores: (usuarioId) => 
+    api.get(`/seguidores/${usuarioId}/seguidores`),
+  obtenerSiguiendo: (usuarioId) => 
+    api.get(`/seguidores/${usuarioId}/siguiendo`),
+  verificar: (usuarioId) => api.get(`/seguidores/verificar/${usuarioId}`)
+};
+
+export default api;
