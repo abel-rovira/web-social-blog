@@ -10,35 +10,44 @@ module.exports = (sequelize) => {
     usuarioId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'usuarios',
-        key: 'id'
-      }
+      field: 'usuario_id'
+    },
+    titulo: {
+      type: DataTypes.STRING(200),
+      allowNull: false
     },
     contenido: {
       type: DataTypes.TEXT,
       allowNull: false
     },
     imagenes: {
-      type: DataTypes.JSON, // Array de URLs
-      allowNull: true,
+      type: DataTypes.JSON,
       defaultValue: []
     },
-    etiquetas: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      defaultValue: []
-    }, 
-    vistas: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0
+    esBorrador: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'es_borrador'
+    },
+    fechaCreacion: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      field: 'fecha_creacion'
+    },
+    fechaActualizacion: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      field: 'fecha_actualizacion'
     }
   }, {
     tableName: 'publicaciones',
-    timestamps: true
+    timestamps: false,
+    hooks: {
+      beforeUpdate: (publicacion) => {
+        publicacion.fechaActualizacion = new Date();
+      }
+    }
   });
 
   return Publicacion;
 };
-
-// intentar la conexion

@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const db = require('./modelos');
+const db = require('./modelos'); 
 
 const app = express();
 
@@ -12,7 +12,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // servir archivos estaticos (imagenes subidas)
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// CORREGIDO: ahora apunta a ./uploads (dentro de backend)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // rutas
 app.use('/api/autenticacion', require('./rutas/autenticacion'));

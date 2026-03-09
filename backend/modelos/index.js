@@ -1,135 +1,175 @@
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
+const configuracion = require('../configuracion/baseDatos');
 
-// Configurar conexión a la base de datos
+// Crear instancia de Sequelize
 const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
+  configuracion.base_datos,
+  configuracion.usuario,
+  configuracion.contrasena,
   {
-    host: process.env.DB_HOST,
-    dialect: process.env.DB_DIALECT,
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    host: configuracion.host,
+    dialect: configuracion.dialect || 'mysql',
+    port: configuracion.puerto,
+    logging: false,
     pool: {
       max: 5,
       min: 0,
       acquire: 30000,
       idle: 10000
-    }
+    },
+    timezone: '+01:00'
   }
 );
 
-// Importar modelos
-const Usuario = require('./Usuario')(sequelize);
-const Publicacion = require('./Publicacion')(sequelize);
-const Comentario = require('./Comentario')(sequelize);
-const Seguidor = require('./Seguidor')(sequelize);
-const MeGusta = require('./MeGusta')(sequelize);
-const Guardado = require('./Guardado')(sequelize);
+const db = {};
 
-// Relaciones entre modelos
+db.Sequelize = Sequelize;
+db.sequelize = sequelize;
 
-// Usuario - Publicacion (1:N)
-Usuario.hasMany(Publicacion, {
+// ===============================
+// IMPORTAR MODELOS
+// ===============================
+db.Usuario = require('./Usuario')(sequelize);
+db.Publicacion = require('./Publicacion')(sequelize);
+db.Comentario = require('./Comentario')(sequelize);
+db.MeGusta = require('./MeGusta')(sequelize);
+db.Seguidor = require('./Seguidor')(sequelize);
+db.Etiqueta = require('./Etiqueta')(sequelize);
+db.PublicacionGuardada = require('./PublicacionGuardada')(sequelize);
+
+// ===============================
+// DEFINIR RELACIONES
+// ===============================
+
+// Usuario -> Publicaciones
+db.Usuario.hasMany(db.Publicacion, {
   foreignKey: 'usuarioId',
   as: 'publicaciones',
   onDelete: 'CASCADE'
 });
-Publicacion.belongsTo(Usuario, {
+db.Publicacion.belongsTo(db.Usuario, {
+  foreignKey: 'usuarioId',
+  as: 'autor'
+});
+
+// Usuario -> Comentarios
+db.Usuario.hasMany(db.Comentario, {
+  foreignKey: 'usuarioId',
+  as: 'comentarios',
+  onDelete: 'CASCADE'
+});
+db.Comentario.belongsTo(db.Usuario, {
   foreignKey: 'usuarioId',
   as: 'usuario'
 });
 
-// Publicacion - Comentario (1:N)
-Publicacion.hasMany(Comentario, {
+// Publicacion -> Comentarios
+db.Publicacion.hasMany(db.Comentario, {
   foreignKey: 'publicacionId',
   as: 'comentarios',
   onDelete: 'CASCADE'
 });
-Comentario.belongsTo(Publicacion, {
+db.Comentario.belongsTo(db.Publicacion, {
   foreignKey: 'publicacionId',
   as: 'publicacion'
 });
 
-// Usuario - Comentario (1:N)
-Usuario.hasMany(Comentario, {
-  foreignKey: 'usuarioId',
-  as: 'comentarios',
+// Publicacion -> Me Gusta
+db.Publicacion.hasMany(db.MeGusta, {
+  foreignKey: 'publicacionId',
+  as: 'meGustas',
   onDelete: 'CASCADE'
 });
-Comentario.belongsTo(Usuario, {
+db.MeGusta.belongsTo(db.Publicacion, {
+  foreignKey: 'publicacionId',
+  as: 'publicacion'
+});
+
+// Usuario -> Me Gusta
+db.Usuario.hasMany(db.MeGusta, {
+  foreignKey: 'usuarioId',
+  as: 'meGustas',
+  onDelete: 'CASCADE'
+});
+db.MeGusta.belongsTo(db.Usuario, {
   foreignKey: 'usuarioId',
   as: 'usuario'
 });
 
-// Seguidores (N:M auto-referencial)
-Usuario.belongsToMany(Usuario, {
-  through: Seguidor,
+// Seguidores
+db.Usuario.belongsToMany(db.Usuario, {
+  through: db.Seguidor,
+  as: 'seguidos',
+  foreignKey: 'seguidorId',
+  otherKey: 'seguidoId'
+});
+db.Usuario.belongsToMany(db.Usuario, {
+  through: db.Seguidor,
   as: 'seguidores',
-  foreignKey: 'siguiendoId',
+  foreignKey: 'seguidoId',
   otherKey: 'seguidorId'
 });
 
-Usuario.belongsToMany(Usuario, {
-  through: Seguidor,
-  as: 'siguiendo',
+// Relaciones directas para seguidores
+db.Usuario.hasMany(db.Seguidor, {
   foreignKey: 'seguidorId',
-  otherKey: 'siguiendoId'
+  as: 'siguiendoRelaciones'
+});
+db.Usuario.hasMany(db.Seguidor, {
+  foreignKey: 'seguidoId',
+  as: 'seguidoresRelaciones'
 });
 
-// Me gusta (N:M)
-Usuario.belongsToMany(Publicacion, {
-  through: MeGusta,
-  as: 'publicacionesGustadas',
+// Publicaciones -> Etiquetas
+db.Publicacion.belongsToMany(db.Etiqueta, {
+  through: 'publicaciones_etiquetas',
+  foreignKey: 'publicacion_id',
+  otherKey: 'etiqueta_id',
+  as: 'etiquetas'
+});
+db.Etiqueta.belongsToMany(db.Publicacion, {
+  through: 'publicaciones_etiquetas',
+  foreignKey: 'etiqueta_id',
+  otherKey: 'publicacion_id',
+  as: 'publicaciones'
+});
+
+// Publicaciones Guardadas
+db.Usuario.hasMany(db.PublicacionGuardada, {
   foreignKey: 'usuarioId',
-  otherKey: 'publicacionId'
-});
-
-Publicacion.belongsToMany(Usuario, {
-  through: MeGusta,
-  as: 'usuariosQueLesGusta',
-  foreignKey: 'publicacionId',
-  otherKey: 'usuarioId'
-});
-
-// Guardados (N:M)
-Usuario.belongsToMany(Publicacion, {
-  through: Guardado,
   as: 'publicacionesGuardadas',
+  onDelete: 'CASCADE'
+});
+db.PublicacionGuardada.belongsTo(db.Usuario, {
   foreignKey: 'usuarioId',
-  otherKey: 'publicacionId'
+  as: 'usuario'
 });
-
-Publicacion.belongsToMany(Usuario, {
-  through: Guardado,
-  as: 'usuariosQueGuardaron',
+db.Publicacion.hasMany(db.PublicacionGuardada, {
   foreignKey: 'publicacionId',
-  otherKey: 'usuarioId'
+  as: 'guardadoPor',
+  onDelete: 'CASCADE'
+});
+db.PublicacionGuardada.belongsTo(db.Publicacion, {
+  foreignKey: 'publicacionId',
+  as: 'publicacion'
 });
 
-// Función para sincronizar base de datos
-const sincronizarBaseDatos = async (opciones = {}) => {
+// ===============================
+// FUNCIÓN PARA SINCRONIZAR BASE DE DATOS
+// ===============================
+db.sincronizarBaseDatos = async (opciones = {}) => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Conexión a base de datos establecida correctamente');
+    console.log('Conexión a MySQL establecida correctamente');
     
     await sequelize.sync(opciones);
     console.log('Modelos sincronizados con la base de datos');
     
     return true;
   } catch (error) {
-    console.error('Error al conectar con la base de datos:', error);
+    console.error('Error al sincronizar base de datos:', error);
     throw error;
   }
 };
 
-module.exports = {
-  sequelize,
-  Usuario,
-  Publicacion,
-  Comentario,
-  Seguidor,
-  MeGusta,
-  Guardado,
-  sincronizarBaseDatos
-};
+module.exports = db;

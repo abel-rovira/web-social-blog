@@ -12,43 +12,37 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
-      validate: {
-        len: [3, 50],
-        isAlphanumeric: true
-      }
+      field: 'nombre_usuario'
     },
-    email: {
+    correo: {
       type: DataTypes.STRING(100),
       allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true
-      }
+      unique: true
     },
     contrasena: {
       type: DataTypes.STRING(255),
       allowNull: false
     },
-    nombreCompleto: {
-      type: DataTypes.STRING(100),
-      allowNull: true
+    avatar: {
+      type: DataTypes.STRING(255),
+      defaultValue: 'https://via.placeholder.com/150'
     },
     biografia: {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    avatar: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      defaultValue: '/uploads/avatars/default.png'
+    enlaces: {
+      type: DataTypes.JSON,
+      defaultValue: []
     },
-    verificado: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
+    fechaCreacion: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      field: 'fecha_creacion'
     }
   }, {
     tableName: 'usuarios',
-    timestamps: true,
+    timestamps: false,
     hooks: {
       beforeCreate: async (usuario) => {
         if (usuario.contrasena) {
@@ -65,10 +59,15 @@ module.exports = (sequelize) => {
     }
   });
 
-// Metodo para comparar contraseñas (misma lógica, sin async/await)
-Usuario.prototype.compararContrasena = function(contrasenaIngresada) {
-  return bcrypt.compare(contrasenaIngresada, this.contrasena);
-};
+  Usuario.prototype.compararContrasena = async function(contrasenaIngresada) {
+    return await bcrypt.compare(contrasenaIngresada, this.contrasena);
+  };
 
-return Usuario;
+  Usuario.prototype.toJSON = function() {
+    const valores = { ...this.get() };
+    delete valores.contrasena;
+    return valores;
+  };
+
+  return Usuario;
 };
