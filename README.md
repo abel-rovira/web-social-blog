@@ -4,12 +4,6 @@
 
 **Una plataforma de blogging social donde escritores comparten historias, conectan con lectores y construyen su audiencia.**
 
-[Demo](#) · [Reportar Bug](#) · [Solicitar Feature](#)
-
-</div>
-
----
-
 ## Tabla de Contenidos
 
 - [Características](#-características)
