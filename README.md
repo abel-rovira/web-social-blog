@@ -1,9 +1,3 @@
-The user just wants an improved README — this is a markdown text task, no file creation tools needed. Let me write a polished, well-structured README.
-
-Here's a significantly improved README for PIXARA:
-
----
-
 # PIXARA — Blog Social
 
 <div align="center">
@@ -257,7 +251,7 @@ npm run build
 # Sirve la carpeta /build con Nginx, Apache o Vercel
 ```
 
-> 💡 Asegúrate de que la carpeta `backend/uploads/` exista y tenga permisos de escritura en producción.
+>  Asegúrate de que la carpeta `backend/uploads/` exista y tenga permisos de escritura en producción.
 
 ---
 
@@ -272,7 +266,7 @@ npm run build
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 Distribuido bajo la Licencia **ISC**. Consulta el archivo `LICENSE` para más información.
 
