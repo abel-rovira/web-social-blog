@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, PenSquare, Bookmark, LogOut, Menu, X, User, Home, Compass } from 'lucide-react';
 import { useAutenticacion } from '../../hooks/useAutenticacion';
 import Avatar from './Avatar';
@@ -7,10 +7,13 @@ import Avatar from './Avatar';
 const BarraNavegacion = () => {
   const { autenticado, usuario, logout } = useAutenticacion();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState('');
 
-  const manejarBusqueda = (e) => {
+  const isActive = (path) => location.pathname === path;
+
+  const handleSearch = (e) => {
     e.preventDefault();
     if (busqueda.trim()) {
       navigate(`/explorar?q=${encodeURIComponent(busqueda)}`);
@@ -19,87 +22,135 @@ const BarraNavegacion = () => {
     }
   };
 
-  const manejarLogout = () => {
-    logout();
-    navigate('/');
-    setMenuAbierto(false);
+  const handleLogout = () => {
+    logout(); // Esto ya redirige al inicio
   };
 
+  // Si está cargando, mostrar un esqueleto simple
+  if (!usuario && autenticado) {
+    return (
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="container-pixara">
+          <div className="flex items-center justify-between h-16">
+            <div className="w-24 h-8 bg-gray-200 animate-pulse rounded"></div>
+            <div className="w-64 h-10 bg-gray-200 animate-pulse rounded-full"></div>
+            <div className="w-32 h-8 bg-gray-200 animate-pulse rounded"></div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
   return (
-    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="container-pixara">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo - Estilo PIXARA */}
-          <Link to="/" className="flex items-center">
-            <span className="title-serif text-2xl text-gray-900 tracking-wider">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link 
+            to="/" 
+            className="flex items-center"
+            onClick={() => setMenuAbierto(false)}
+          >
+            <span className="font-serif text-2xl font-bold text-gray-900">
               PIXARA
             </span>
           </Link>
 
-          {/* Búsqueda Desktop - con el estilo "Q Buscar historias..." */}
-          <form onSubmit={manejarBusqueda} className="hidden md:block flex-1 max-w-md mx-8">
+          {/* Búsqueda Desktop */}
+          <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-md mx-8">
             <div className="relative">
               <input
                 type="text"
-                placeholder="Q Buscar historias..."
+                placeholder="Buscar historias..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-700 placeholder-gray-400"
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all"
               />
-              <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Search className="w-5 h-5 text-gray-400 hover:text-amber-600 transition-colors" />
-              </button>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             </div>
           </form>
 
           {/* Menú Desktop */}
           <div className="hidden md:flex items-center gap-1">
             <Link
+              to="/"
+              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/') 
+                  ? 'text-amber-600 bg-amber-50' 
+                  : 'text-gray-600 hover:text-amber-600 hover:bg-amber-50'
+              }`}
+            >
+              Inicio
+            </Link>
+            
+            <Link
               to="/explorar"
-              className="px-4 py-2 text-gray-600 hover:text-amber-600 font-medium transition-colors"
+              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/explorar') 
+                  ? 'text-amber-600 bg-amber-50' 
+                  : 'text-gray-600 hover:text-amber-600 hover:bg-amber-50'
+              }`}
             >
               Explorar
             </Link>
             
-            {autenticado ? (
+            {autenticado && usuario ? (
               <>
                 <Link
                   to="/crear"
-                  className="px-4 py-2 text-gray-600 hover:text-amber-600 font-medium transition-colors flex items-center gap-1"
+                  className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isActive('/crear') 
+                      ? 'text-amber-600 bg-amber-50' 
+                      : 'text-gray-600 hover:text-amber-600 hover:bg-amber-50'
+                  }`}
                 >
                   <PenSquare className="w-4 h-4" />
                   Escribir
                 </Link>
+                
                 <Link
                   to="/guardados"
-                  className="p-2 text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors"
+                  className={`p-2 rounded-lg transition-colors ${
+                    isActive('/guardados') 
+                      ? 'text-amber-600 bg-amber-50' 
+                      : 'text-gray-600 hover:text-amber-600 hover:bg-amber-50'
+                  }`}
                   title="Guardados"
                 >
                   <Bookmark className="w-5 h-5" />
                 </Link>
+                
                 <Link
-                  to={`/perfil/${usuario?.nombreUsuario}`}
+                  to={`/perfil/${usuario.nombreUsuario}`}
                   className="ml-2"
                 >
                   <Avatar
-                    src={usuario?.avatar}
-                    alt={usuario?.nombreUsuario}
+                    src={usuario.avatar}
+                    alt={usuario.nombreUsuario}
                     size="sm"
                     className="border-2 border-transparent hover:border-amber-400 transition-all"
                   />
                 </Link>
+                
+                <button
+                  onClick={handleLogout}
+                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
               </>
             ) : (
               <div className="flex items-center gap-2 ml-4">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-gray-600 hover:text-amber-600 font-medium transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-amber-600 transition-colors"
                 >
                   Entrar
                 </Link>
                 <Link
                   to="/registro"
-                  className="px-6 py-2.5 bg-amber-600 text-white rounded-full hover:bg-amber-700 transition-colors font-medium"
+                  className="px-4 py-2 text-sm font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                 >
                   Registrarse
                 </Link>
@@ -119,26 +170,33 @@ const BarraNavegacion = () => {
 
       {/* Menú móvil */}
       {menuAbierto && (
-        <div className="md:hidden bg-white border-t border-gray-100 py-4">
-          <div className="container-pixara space-y-4">
+        <div className="md:hidden bg-white border-t border-gray-200 py-4">
+          <div className="container-pixara space-y-3">
             {/* Búsqueda móvil */}
-            <form onSubmit={manejarBusqueda}>
+            <form onSubmit={handleSearch}>
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Q Buscar historias..."
+                  placeholder="Buscar historias..."
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
-                  className="w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full pl-10 pr-4 py-2 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
-                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Search className="w-5 h-5 text-gray-400" />
-                </button>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               </div>
             </form>
 
             {/* Links móvil */}
             <div className="flex flex-col">
+              <Link
+                to="/"
+                onClick={() => setMenuAbierto(false)}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-50 text-gray-700"
+              >
+                <Home className="w-5 h-5 text-gray-500" />
+                Inicio
+              </Link>
+              
               <Link
                 to="/explorar"
                 onClick={() => setMenuAbierto(false)}
@@ -148,7 +206,7 @@ const BarraNavegacion = () => {
                 Explorar
               </Link>
               
-              {autenticado ? (
+              {autenticado && usuario ? (
                 <>
                   <Link
                     to="/crear"
@@ -158,6 +216,7 @@ const BarraNavegacion = () => {
                     <PenSquare className="w-5 h-5 text-gray-500" />
                     Escribir
                   </Link>
+                  
                   <Link
                     to="/guardados"
                     onClick={() => setMenuAbierto(false)}
@@ -166,16 +225,18 @@ const BarraNavegacion = () => {
                     <Bookmark className="w-5 h-5 text-gray-500" />
                     Guardados
                   </Link>
+                  
                   <Link
-                    to={`/perfil/${usuario?.nombreUsuario}`}
+                    to={`/perfil/${usuario.nombreUsuario}`}
                     onClick={() => setMenuAbierto(false)}
                     className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-50 text-gray-700"
                   >
                     <User className="w-5 h-5 text-gray-500" />
                     Mi perfil
                   </Link>
+                  
                   <button
-                    onClick={manejarLogout}
+                    onClick={handleLogout}
                     className="flex items-center gap-3 px-3 py-3 text-red-600 hover:bg-red-50 rounded-lg text-left"
                   >
                     <LogOut className="w-5 h-5" />
@@ -194,7 +255,7 @@ const BarraNavegacion = () => {
                   <Link
                     to="/registro"
                     onClick={() => setMenuAbierto(false)}
-                    className="px-4 py-3 text-center bg-amber-600 text-white rounded-full hover:bg-amber-700"
+                    className="px-4 py-3 text-center bg-amber-600 text-white rounded-lg hover:bg-amber-700"
                   >
                     Registrarse
                   </Link>
