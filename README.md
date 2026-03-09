@@ -1,4 +1,4 @@
-# PIXARA — Blog Social
+<img width="1839" height="902" alt="image" src="https://github.com/user-attachments/assets/d566724b-afc4-40dd-845a-5f56c62b3b58" /># PIXARA — Blog Social
 
 <div align="center">
 
@@ -31,17 +31,13 @@
 
 ### Página Principal
 
-![Página principal](screenshots/home.png)
+<img width="1839" height="902" alt="image" src="https://github.com/user-attachments/assets/ef493285-5871-4c32-a64a-51950287aa63" />
 
 ### Login y Registro
 
 | Login | Registro |
 |-------|----------|
-| ![Login](screenshots/login.png) | ![Registro](screenshots/registro.png) |
-
-### Perfil de Usuario
-
-![Perfil de usuario](screenshots/perfil.png)
+| <img width="644" height="553" alt="image" src="https://github.com/user-attachments/assets/f226331b-02c5-47ff-81fa-0de1c4011fcc" /> | <img width="514" height="634" alt="image" src="https://github.com/user-attachments/assets/47690620-7d90-40fb-8bda-868dced5a47d" /> |
 
 ---
 
