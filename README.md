@@ -2,8 +2,6 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-ISC-green) ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen) ![MySQL](https://img.shields.io/badge/mysql-%3E%3D8.0-orange)
-
 **Una plataforma de blogging social donde escritores comparten historias, conectan con lectores y construyen su audiencia.**
 
 [Demo](#) · [Reportar Bug](#) · [Solicitar Feature](#)
