@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,12 +12,17 @@
   }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
+    background-color: #ffffff;
+    color: #1a1a1a;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 
   code {
@@ -24,55 +31,71 @@
 }
 
 @layer components {
-  .container-blog {
+  .container-pixara {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  .card-blog {
-    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
+  .title-serif {
+    font-family: 'Playfair Display', serif;
+    @apply font-bold tracking-tight;
   }
 
-  .gradient-text {
-    @apply bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent;
+  .text-amber {
+    color: #b45309;
   }
 
-  .btn-primary {
-    @apply bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105;
+  .bg-amber-light {
+    background-color: #fef3c7;
   }
 
-  .btn-secondary {
-    @apply bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-all duration-300;
+  .border-amber {
+    border-color: #fbbf24;
   }
 
-  .input-moderno {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all;
+  .btn-pixara-primary {
+    @apply bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-8 rounded-full transition-colors;
+  }
+
+  .btn-pixara-outline {
+    @apply border border-gray-300 hover:border-amber-600 text-gray-700 hover:text-amber-600 font-medium py-3 px-8 rounded-full transition-colors;
+  }
+
+  .card-pixara {
+    @apply bg-white rounded-lg border border-gray-100 hover:border-amber-200 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .input-pixara {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all;
   }
 }
 
 /* Animaciones personalizadas */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.6s ease-out forwards;
+.animate-fadeUp {
+  animation: fadeUp 0.6s ease-out forwards;
 }
 
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 8px;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b46a1 100%);
+.animate-slideIn {
+  animation: slideIn 0.5s ease-out forwards;
 }
