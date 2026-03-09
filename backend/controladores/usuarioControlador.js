@@ -1,9 +1,10 @@
 const db = require('../modelos');
 const { validarActualizacionPerfil, validarCambioContrasena } = require('../utilidades/validadores');
+const path = require('path');
+const fs = require('fs');
 
 /**
  * obtener perfil de usuario por nombre de usuario
- * get /api/usuarios/:nombreUsuario
  */
 exports.obtenerPerfil = async (req, res) => {
   try {
@@ -43,7 +44,6 @@ exports.obtenerPerfil = async (req, res) => {
       });
     }
 
-    // verificar si el usuario actual sigue a este perfil
     let sigueAlUsuario = false;
     if (usuarioActualId) {
       const seguimiento = await db.Seguidor.findOne({
@@ -77,14 +77,12 @@ exports.obtenerPerfil = async (req, res) => {
 
 /**
  * actualizar perfil de usuario
- * put /api/usuarios/perfil
  */
 exports.actualizarPerfil = async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
-    const { nombreUsuario, biografia, enlaces, correo } = req.body;
+    const { nombreUsuario, biografia, enlaces, correo, usarAvatarPersonalizado } = req.body;
 
-    // validar datos
     const validacion = validarActualizacionPerfil(req.body);
     if (!validacion.valido) {
       return res.status(400).json({
@@ -94,7 +92,6 @@ exports.actualizarPerfil = async (req, res) => {
       });
     }
 
-    // verificar si el nuevo nombre de usuario ya existe
     if (nombreUsuario) {
       const usuarioExistente = await db.Usuario.findOne({
         where: {
@@ -111,7 +108,6 @@ exports.actualizarPerfil = async (req, res) => {
       }
     }
 
-    // verificar si el nuevo correo ya existe
     if (correo) {
       const correoExistente = await db.Usuario.findOne({
         where: {
@@ -128,23 +124,37 @@ exports.actualizarPerfil = async (req, res) => {
       }
     }
 
-    // actualizar usuario
     const datosActualizacion = {};
     if (nombreUsuario) datosActualizacion.nombreUsuario = nombreUsuario;
     if (biografia !== undefined) datosActualizacion.biografia = biografia;
-    if (enlaces) datosActualizacion.enlaces = enlaces;
+    if (enlaces) datosActualizacion.enlaces = JSON.parse(enlaces);
     if (correo) datosActualizacion.correo = correo;
 
-    // si hay avatar en el archivo subido
+    // Si hay avatar en el archivo subido
     if (req.file) {
+      const usuarioActual = await db.Usuario.findByPk(usuarioId);
+      
+      // Eliminar avatar anterior si era personalizado
+      if (usuarioActual.avatarPersonalizado && usuarioActual.avatar) {
+        const oldAvatarPath = path.join(__dirname, '../../uploads', path.basename(usuarioActual.avatar));
+        if (fs.existsSync(oldAvatarPath)) {
+          fs.unlinkSync(oldAvatarPath);
+        }
+      }
+
       datosActualizacion.avatar = `/uploads/${req.file.filename}`;
+      datosActualizacion.avatarPersonalizado = true;
+    } else if (usarAvatarPersonalizado === 'false') {
+      // Volver al avatar por defecto
+      const usuario = await db.Usuario.findByPk(usuarioId);
+      datosActualizacion.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(usuario.nombreUsuario)}&background=random&size=150`;
+      datosActualizacion.avatarPersonalizado = false;
     }
 
     await db.Usuario.update(datosActualizacion, {
       where: { id: usuarioId }
     });
 
-    // obtener usuario actualizado
     const usuarioActualizado = await db.Usuario.findByPk(usuarioId, {
       attributes: { exclude: ['contrasena'] }
     });
@@ -165,14 +175,12 @@ exports.actualizarPerfil = async (req, res) => {
 
 /**
  * cambiar contrasena
- * put /api/usuarios/cambiar-contrasena
  */
 exports.cambiarContrasena = async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
     const { contrasenaActual, nuevaContrasena } = req.body;
 
-    // validar datos
     const validacion = validarCambioContrasena(req.body);
     if (!validacion.valido) {
       return res.status(400).json({
@@ -182,10 +190,8 @@ exports.cambiarContrasena = async (req, res) => {
       });
     }
 
-    // obtener usuario con contrasena
     const usuario = await db.Usuario.findByPk(usuarioId);
 
-    // verificar contrasena actual
     const contrasenaValida = await usuario.compararContrasena(contrasenaActual);
     if (!contrasenaValida) {
       return res.status(401).json({
@@ -194,7 +200,6 @@ exports.cambiarContrasena = async (req, res) => {
       });
     }
 
-    // actualizar contrasena
     usuario.contrasena = nuevaContrasena;
     await usuario.save();
 
@@ -213,7 +218,6 @@ exports.cambiarContrasena = async (req, res) => {
 
 /**
  * buscar usuarios
- * get /api/usuarios/buscar?termino=...
  */
 exports.buscarUsuarios = async (req, res) => {
   try {

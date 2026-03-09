@@ -10,9 +10,12 @@ const Avatar = ({ src, alt = 'Avatar', size = 'md', className = '' }) => {
     '2xl': 'w-32 h-32'
   };
 
+  // Generar avatar por defecto si no hay imagen
+  const avatarSrc = src || `https://ui-avatars.com/api/?name=${encodeURIComponent(alt || 'Usuario')}&background=random&size=150`;
+
   return (
     <img
-      src={src || 'https://via.placeholder.com/150'}
+      src={avatarSrc}
       alt={alt}
       className={`${tamanos[size]} rounded-full object-cover border-2 border-gray-200 ${className}`}
     />

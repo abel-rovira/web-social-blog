@@ -25,7 +25,16 @@ module.exports = (sequelize) => {
     },
     avatar: {
       type: DataTypes.STRING(255),
-      defaultValue: 'https://via.placeholder.com/150'
+      defaultValue: function() {
+        // Generar avatar por defecto basado en el nombre de usuario
+        const nombre = this.nombreUsuario || 'usuario';
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=random&size=150`;
+      }
+    },
+    avatarPersonalizado: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'avatar_personalizado'
     },
     biografia: {
       type: DataTypes.TEXT,
@@ -48,6 +57,11 @@ module.exports = (sequelize) => {
         if (usuario.contrasena) {
           const salt = await bcrypt.genSalt(10);
           usuario.contrasena = await bcrypt.hash(usuario.contrasena, salt);
+        }
+        // Generar avatar por defecto si no se proporciona uno
+        if (!usuario.avatar || usuario.avatar === 'https://via.placeholder.com/150') {
+          usuario.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(usuario.nombreUsuario)}&background=random&size=150`;
+          usuario.avatarPersonalizado = false;
         }
       },
       beforeUpdate: async (usuario) => {
