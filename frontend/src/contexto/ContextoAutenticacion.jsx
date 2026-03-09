@@ -1,42 +1,57 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { autenticacionAPI } from '../servicios/api';
+import toast from 'react-hot-toast';
 
-const ContextoAutenticacion = createContext();
+// Crear el contexto
+const AuthContext = createContext();
 
+// Hook personalizado para usar el contexto
 export const useAutenticacion = () => {
-  const contexto = useContext(ContextoAutenticacion);
-  if (!contexto) {
-    throw new Error('useAutenticacion debe usarse dentro de ProveedorAutenticacion');
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAutenticacion debe usarse dentro de AuthProvider');
   }
-  return contexto;
+  return context;
 };
 
-export const ProveedorAutenticacion = ({ children }) => {
+// Provider del contexto
+export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [autenticado, setAutenticado] = useState(false);
 
-  // verificar si hay usuario logueado al cargar la app
+  // Verificar token al cargar la app
   useEffect(() => {
-    verificarAutenticacion();
+    verificarToken();
   }, []);
 
-  const verificarAutenticacion = async () => {
+  const verificarToken = async () => {
     const token = localStorage.getItem('token');
     
     if (!token) {
       setCargando(false);
+      setAutenticado(false);
+      setUsuario(null);
       return;
     }
 
     try {
       const respuesta = await autenticacionAPI.obtenerUsuarioActual();
-      setUsuario(respuesta.data.datos);
-      setAutenticado(true);
+      
+      if (respuesta.data && respuesta.data.exito) {
+        setUsuario(respuesta.data.datos);
+        setAutenticado(true);
+        // Guardar usuario actualizado en localStorage
+        localStorage.setItem('usuario', JSON.stringify(respuesta.data.datos));
+      } else {
+        throw new Error('Error al obtener usuario');
+      }
     } catch (error) {
-      console.error('Error al verificar autenticacion:', error);
+      console.error('Error verificando token:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('usuario');
+      setAutenticado(false);
+      setUsuario(null);
     } finally {
       setCargando(false);
     }
@@ -45,50 +60,68 @@ export const ProveedorAutenticacion = ({ children }) => {
   const login = async (credenciales) => {
     try {
       const respuesta = await autenticacionAPI.login(credenciales);
-      const { token, usuario } = respuesta.data.datos;
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('usuario', JSON.stringify(usuario));
-      
-      setUsuario(usuario);
-      setAutenticado(true);
-      
-      return { exito: true };
+      if (respuesta.data && respuesta.data.exito) {
+        const { token, usuario } = respuesta.data.datos;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('usuario', JSON.stringify(usuario));
+        
+        setUsuario(usuario);
+        setAutenticado(true);
+        
+        toast.success('¡Bienvenido de nuevo!');
+        return { exito: true };
+      } else {
+        throw new Error(respuesta.data?.mensaje || 'Error al iniciar sesión');
+      }
     } catch (error) {
       console.error('Error en login:', error);
-      return {
-        exito: false,
-        mensaje: error.response?.data?.mensaje || 'Error al iniciar sesión'
-      };
+      const mensaje = error.response?.data?.mensaje || 'Error al iniciar sesión';
+      toast.error(mensaje);
+      return { exito: false, mensaje };
     }
   };
 
   const registro = async (datos) => {
     try {
       const respuesta = await autenticacionAPI.registro(datos);
-      const { token, usuario } = respuesta.data.datos;
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('usuario', JSON.stringify(usuario));
-      
-      setUsuario(usuario);
-      setAutenticado(true);
-      
-      return { exito: true };
+      if (respuesta.data && respuesta.data.exito) {
+        const { token, usuario } = respuesta.data.datos;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('usuario', JSON.stringify(usuario));
+        
+        setUsuario(usuario);
+        setAutenticado(true);
+        
+        toast.success('¡Cuenta creada exitosamente!');
+        return { exito: true };
+      } else {
+        throw new Error(respuesta.data?.mensaje || 'Error al registrarse');
+      }
     } catch (error) {
       console.error('Error en registro:', error);
-      return {
-        exito: false,
-        mensaje: error.response?.data?.mensaje || 'Error al registrarse'
-      };
+      const mensaje = error.response?.data?.mensaje || 'Error al registrarse';
+      toast.error(mensaje);
+      return { exito: false, mensaje };
     }
   };
 
   const logout = () => {
+    // Limpiar localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
+    
+    // Limpiar estado
     setUsuario(null);
     setAutenticado(false);
+    
+    toast.success('¡Hasta pronto!');
+    
+    // Redirigir al inicio
+    window.location.href = '/';
   };
 
   const actualizarUsuario = (datosActualizados) => {
@@ -103,14 +136,15 @@ export const ProveedorAutenticacion = ({ children }) => {
     login,
     registro,
     logout,
-    actualizarUsuario
+    actualizarUsuario,
+    verificarToken
   };
 
   return (
-    <ContextoAutenticacion.Provider value={valor}>
+    <AuthContext.Provider value={valor}>
       {children}
-    </ContextoAutenticacion.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export default ContextoAutenticacion;
+export default AuthContext;
