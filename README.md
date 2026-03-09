@@ -1,12 +1,6 @@
-<img width="1839" height="902" alt="image" src="https://github.com/user-attachments/assets/d566724b-afc4-40dd-845a-5f56c62b3b58" /># PIXARA — Blog Social
-
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-ISC-green) ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen) ![MySQL](https://img.shields.io/badge/mysql-%3E%3D8.0-orange)
-
 **Plataforma de blogging social donde escritores comparten historias, conectan con lectores y construyen su audiencia.**
-
-[Demo](#) · [Reportar Bug](#) · [Solicitar Feature](#)
 
 </div>
 
