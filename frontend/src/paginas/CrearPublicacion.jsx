@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Image, X, Send, Save } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAutenticacion } from '../hooks/useAutenticacion';
 import { publicacionesAPI } from '../servicios/api';
 import BarraNavegacion from '../componentes/comunes/BarraNavegacion';
+import EditorEnriquecido from '../componentes/publicaciones/EditorEnriquecido';
+import { Image, X, Send, Save, Eye, EyeOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const CrearPublicacion = () => {
+  const { id } = useParams(); // Para edición
   const navigate = useNavigate();
+  const { autenticado } = useAutenticacion();
+
   const [formData, setFormData] = useState({
     titulo: '',
     contenido: '',
@@ -14,9 +19,15 @@ const CrearPublicacion = () => {
   });
   const [imagenes, setImagenes] = useState([]);
   const [previsualizaciones, setPrevisualizaciones] = useState([]);
-  const [vistaPrevia, setVistaPrevia] = useState(false);
   const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState('');
+  const [modoVistaPrevia, setModoVistaPrevia] = useState(false);
+
+  // Redirigir si no está autenticado
+  React.useEffect(() => {
+    if (!autenticado) {
+      navigate('/login');
+    }
+  }, [autenticado, navigate]);
 
   const manejarCambio = (e) => {
     setFormData({
@@ -25,17 +36,23 @@ const CrearPublicacion = () => {
     });
   };
 
+  const manejarContenido = (contenido) => {
+    setFormData({
+      ...formData,
+      contenido
+    });
+  };
+
   const manejarImagenes = (e) => {
     const archivos = Array.from(e.target.files);
     
     if (archivos.length + imagenes.length > 10) {
-      setError('Máximo 10 imágenes por publicación');
+      toast.error('Máximo 10 imágenes por publicación');
       return;
     }
 
     setImagenes([...imagenes, ...archivos]);
 
-    // crear previsualizaciones
     archivos.forEach(archivo => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -52,11 +69,11 @@ const CrearPublicacion = () => {
 
   const validarFormulario = () => {
     if (!formData.titulo.trim()) {
-      setError('El título es obligatorio');
+      toast.error('El título es obligatorio');
       return false;
     }
     if (!formData.contenido.trim()) {
-      setError('El contenido es obligatorio');
+      toast.error('El contenido es obligatorio');
       return false;
     }
     return true;
@@ -66,7 +83,6 @@ const CrearPublicacion = () => {
     if (!validarFormulario()) return;
 
     setCargando(true);
-    setError('');
 
     try {
       const etiquetasArray = formData.etiquetas
@@ -74,18 +90,30 @@ const CrearPublicacion = () => {
         .map(e => e.trim())
         .filter(e => e);
 
-      await publicacionesAPI.crear({
+      const datos = {
         titulo: formData.titulo,
         contenido: formData.contenido,
         etiquetas: etiquetasArray,
         imagenes,
         esBorrador
-      });
+      };
 
-      navigate('/');
-    } catch (err) {
-      console.error('Error al crear publicación:', err);
-      setError(err.response?.data?.mensaje || 'Error al crear publicación');
+      let respuesta;
+      if (id) {
+        // Editar publicación existente
+        respuesta = await publicacionesAPI.actualizar(id, datos);
+      } else {
+        // Crear nueva publicación
+        respuesta = await publicacionesAPI.crear(datos);
+      }
+
+      if (respuesta.data.exito) {
+        toast.success(esBorrador ? 'Borrador guardado' : 'Publicación creada');
+        navigate(`/publicacion/${respuesta.data.datos.id}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error(error.response?.data?.mensaje || 'Error al guardar la publicación');
     } finally {
       setCargando(false);
     }
@@ -95,43 +123,49 @@ const CrearPublicacion = () => {
     <div className="min-h-screen bg-gray-50">
       <BarraNavegacion />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="container-pixara py-8">
         <div className="bg-white rounded-xl shadow-lg p-6">
-          {/* cabecera */}
+          {/* Cabecera */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Crear Publicación</h1>
+            <h1 className="text-3xl font-serif font-bold text-gray-900">
+              {id ? 'Editar Publicación' : 'Crear Nueva Publicación'}
+            </h1>
             <div className="flex gap-2">
               <button
-                onClick={() => setVistaPrevia(!vistaPrevia)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                onClick={() => setModoVistaPrevia(!modoVistaPrevia)}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                {vistaPrevia ? 'Editar' : 'Vista Previa'}
+                {modoVistaPrevia ? (
+                  <>
+                    <EyeOff className="w-4 h-4" />
+                    Editar
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4" />
+                    Vista Previa
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          {!vistaPrevia ? (
+          {!modoVistaPrevia ? (
             <>
-              {/* titulo */}
+              {/* Título */}
               <input
                 type="text"
                 name="titulo"
-                placeholder="Título de tu publicación..."
+                placeholder="Título de tu historia..."
                 value={formData.titulo}
                 onChange={manejarCambio}
-                className="w-full text-4xl font-bold border-none outline-none mb-6 placeholder-gray-300 focus:placeholder-gray-400"
+                className="w-full text-3xl font-serif font-bold border-none outline-none mb-6 placeholder-gray-300"
                 disabled={cargando}
               />
 
-              {/* subir imagenes */}
+              {/* Subir imágenes */}
               <div className="mb-6">
-                <label className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors w-fit">
+                <label className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors w-fit">
                   <Image className="w-5 h-5" />
                   <span className="font-medium">Añadir imágenes</span>
                   <input
@@ -144,7 +178,7 @@ const CrearPublicacion = () => {
                   />
                 </label>
 
-                {/* previsualizaciones */}
+                {/* Previsualizaciones */}
                 {previsualizaciones.length > 0 && (
                   <div className="grid grid-cols-3 gap-4 mt-4">
                     {previsualizaciones.map((prev, index) => (
@@ -152,7 +186,7 @@ const CrearPublicacion = () => {
                         <img
                           src={prev}
                           alt={`Preview ${index + 1}`}
-                          className="w-full h-40 object-cover rounded-lg"
+                          className="w-full h-32 object-cover rounded-lg"
                         />
                         <button
                           onClick={() => eliminarImagen(index)}
@@ -167,33 +201,33 @@ const CrearPublicacion = () => {
                 )}
               </div>
 
-              {/* editor markdown */}
-              <textarea
-                name="contenido"
-                placeholder="Escribe tu historia... (usa Markdown para dar formato)"
+              {/* Editor enriquecido */}
+              <EditorEnriquecido
                 value={formData.contenido}
-                onChange={manejarCambio}
-                className="w-full h-96 p-4 border border-gray-200 rounded-lg resize-none outline-none focus:border-blue-500 transition-colors font-mono text-sm"
-                disabled={cargando}
+                onChange={manejarContenido}
+                placeholder="Escribe tu historia... (puedes usar negrita, listas, enlaces, etc.)"
+                altura={400}
               />
 
-              {/* etiquetas */}
-              <input
-                type="text"
-                name="etiquetas"
-                placeholder="Etiquetas (separadas por comas): tecnología, viajes, comida"
-                value={formData.etiquetas}
-                onChange={manejarCambio}
-                className="w-full mt-4 px-4 py-3 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
-                disabled={cargando}
-              />
+              {/* Etiquetas */}
+              <div className="mt-20">
+                <input
+                  type="text"
+                  name="etiquetas"
+                  placeholder="Etiquetas (separadas por comas): escritura, viajes, tecnología"
+                  value={formData.etiquetas}
+                  onChange={manejarCambio}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-colors"
+                  disabled={cargando}
+                />
+              </div>
 
-              {/* botones de accion */}
+              {/* Botones de acción */}
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => manejarPublicar(true)}
                   disabled={cargando}
-                  className="px-6 py-3 font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  className="flex items-center gap-2 px-6 py-3 font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
                 >
                   <Save className="w-5 h-5" />
                   Guardar borrador
@@ -201,7 +235,7 @@ const CrearPublicacion = () => {
                 <button
                   onClick={() => manejarPublicar(false)}
                   disabled={cargando}
-                  className="px-6 py-3 font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                  className="flex items-center gap-2 px-6 py-3 font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors"
                 >
                   {cargando ? (
                     <>
@@ -218,25 +252,30 @@ const CrearPublicacion = () => {
               </div>
             </>
           ) : (
-            /* vista previa */
-            <div>
-              <h1 className="text-4xl font-bold mb-4">{formData.titulo || 'Título de ejemplo'}</h1>
+            /* Vista previa */
+            <div className="prose prose-lg max-w-none">
+              <h1 className="text-4xl font-serif font-bold">
+                {formData.titulo || 'Título de ejemplo'}
+              </h1>
+              
               {previsualizaciones.length > 0 && (
                 <img
                   src={previsualizaciones[0]}
                   alt="Preview"
-                  className="w-full h-96 object-cover rounded-lg mb-6"
+                  className="w-full h-96 object-cover rounded-lg my-6"
                 />
               )}
-              <div className="prose prose-lg max-w-none">
-                <ReactMarkdown>{formData.contenido || '*Escribe algo para ver la vista previa*'}</ReactMarkdown>
-              </div>
+              
+              <div dangerouslySetInnerHTML={{ 
+                __html: formData.contenido || '<p>Escribe algo para ver la vista previa...</p>' 
+              }} />
+              
               {formData.etiquetas && (
                 <div className="flex flex-wrap gap-2 mt-6">
                   {formData.etiquetas.split(',').map((etiqueta, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium"
+                      className="px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-sm font-medium"
                     >
                       #{etiqueta.trim()}
                     </span>
@@ -247,16 +286,14 @@ const CrearPublicacion = () => {
           )}
         </div>
 
-        {/* guia de markdown */}
+        {/* Guía rápida */}
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 Guía rápida de Markdown</h3>
+          <h3 className="font-semibold text-blue-900 mb-2">📝 Guía rápida</h3>
           <div className="text-sm text-blue-800 space-y-1">
-            <p><code># Título</code> → Encabezado principal</p>
-            <p><code>## Subtítulo</code> → Encabezado secundario</p>
-            <p><code>**negrita**</code> → <strong>negrita</strong></p>
-            <p><code>*cursiva*</code> → <em>cursiva</em></p>
-            <p><code>[texto](url)</code> → enlace</p>
-            <p><code>- item</code> → lista con viñetas</p>
+            <p>• Puedes usar el editor para dar formato a tu texto</p>
+            <p>• Añade hasta 10 imágenes por publicación</p>
+            <p>• Las etiquetas ayudan a otros usuarios a encontrar tu contenido</p>
+            <p>• Los borradores se guardan automáticamente</p>
           </div>
         </div>
       </div>
